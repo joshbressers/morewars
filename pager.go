@@ -5,6 +5,7 @@ import (
     "os"
     "fmt"
     "strings"
+    "time"
     "github.com/rthornton128/goncurses"
 )
 
@@ -56,7 +57,13 @@ func main() {
 
         // First shift all the strings up
         for i := 0; i < row - 1; i++ {
-            new_lines[i] = all_lines[i+1]
+            // We need to pull out two characters in the middle
+            if len(all_lines[i]) == 0 {
+                new_lines[i] = all_lines[i+1]
+            } else {
+                var middle int = len(all_lines[i])/2
+                new_lines[i] = fmt.Sprintf(" %s%s ", all_lines[i+1][:middle-1], all_lines[i+1][middle+1:])
+            }
         }
 
         // Now add our new string
@@ -72,6 +79,7 @@ func main() {
         new_lines[row-1] = one_line
         all_lines = new_lines
         draw_screen(s, all_lines)
+        time.Sleep(100000000)
     }
 
     s.GetChar()
