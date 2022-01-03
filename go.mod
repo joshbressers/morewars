@@ -1,4 +1,4 @@
-module gihub.com/joshbressers/lesswars
+module gihub.com/joshbressers/morewars
 
 go 1.16
 

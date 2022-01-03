@@ -2,8 +2,9 @@ package main
 
 import (
     "bufio"
-    "fmt"
     "os"
+    "fmt"
+    "strings"
     "github.com/rthornton128/goncurses"
 )
 
@@ -13,26 +14,67 @@ func check(e error) {
     }
 }
 
-func main() {
+func draw_screen(s *goncurses.Window, lines []string) {
 
-    file, err := os.Open("/tmp/dat")
-    check(err)
-
-    lines := bufio.NewScanner(file)
-    for lines.Scan() {
-        fmt.Println(lines.Text())
+    for i := range lines {
+        s.Move(i,0)
+        s.Print(lines[i])
     }
 
-    fmt.Println("")
+    s.Refresh()
+}
+
+func main() {
+
+    var filename string
+
+    if len(os.Args) == 2 {
+        filename = os.Args[1]
+    } else {
+        os.Exit(1)
+    }
+
+    file, err := os.Open(filename)
+    check(err)
 
     s, err := goncurses.Init()
     check(err)
     defer goncurses.End()
 
-    s.Move(5,2)
-    s.Print("XXX TEST XXX")
-    s.MovePrint(10,10, "XXX 10,10 XXX")
-    s.Refresh()
+    row, col := s.MaxYX()
+
+    all_lines := make([]string, row)
+
+    // There's probably a better way to do this
+    for i := 0; i < row; i++ {
+        all_lines[i] = ""
+    }
+
+    lines := bufio.NewScanner(file)
+    for lines.Scan() {
+        new_lines := make([]string, row)
+
+        // First shift all the strings up
+        for i := 0; i < row - 1; i++ {
+            new_lines[i] = all_lines[i+1]
+        }
+
+        // Now add our new string
+        one_line := lines.Text()
+        if len(one_line) > col {
+            one_line = one_line[:row]
+        }
+        var pad_len int= (col-len(one_line))/2
+        // Pad the string and store it in a new string.
+        // We want row - strlen / 2
+        one_line = fmt.Sprintf("%s%s", strings.Repeat(" ", pad_len), one_line)
+        one_line = fmt.Sprintf("%s%s", one_line, strings.Repeat(" ", pad_len))
+        new_lines[row-1] = one_line
+        all_lines = new_lines
+        draw_screen(s, all_lines)
+    }
 
     s.GetChar()
+
+
 }
