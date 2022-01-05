@@ -44,6 +44,12 @@ func main() {
 
     row, col := s.MaxYX()
 
+    // We need to figure out how many characters to remove per line
+    // We keep 3 lines at the bottom
+    // So col - 3
+    // Then we take row / new_cols
+    to_remove := (col - 3) / row
+
     all_lines := make([]string, row)
 
     // There's probably a better way to do this
@@ -56,18 +62,25 @@ func main() {
         new_lines := make([]string, row)
 
         // First shift all the strings up
-        for i := 0; i < row - 1; i++ {
+        for i := 0; i < row-1; i++ {
             // We need to pull out two characters in the middle
-            if len(all_lines[i]) == 0 {
+            if len(all_lines[i+1]) == 0 {
                 new_lines[i] = all_lines[i+1]
             } else {
-                var middle int = len(all_lines[i])/2
-                new_lines[i] = fmt.Sprintf(" %s%s ", all_lines[i+1][:middle-1], all_lines[i+1][middle+1:])
+                if i > row-3 {
+                    new_lines[i] = all_lines[i+1]
+                } else {
+                    var middle int = len(all_lines[i+1])/2
+                    for r := 0; r < to_remove/2; r++ {
+                        new_lines[i] = fmt.Sprintf(" %s%s ", all_lines[i+1][:middle-1], all_lines[i+1][middle+1:])
+                    }
+                }
             }
         }
 
         // Now add our new string
         one_line := lines.Text()
+        one_line = strings.TrimSpace(one_line)
         if len(one_line) > col {
             one_line = one_line[:row]
         }
